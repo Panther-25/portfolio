@@ -157,10 +157,10 @@ app.post("/api/chat", async (req, res) => {
 });
 
 // ── Catch-all → serve index.html ──
-app.get("*", (req, res) => {
+// ── Catch-all → change "*" to match a pure regex /.*/ fallback ──
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
-
 // ── Start ──
 app.listen(PORT, () => {
   console.log(`\n PHOENIX PORTFOLIO SERVER`);
