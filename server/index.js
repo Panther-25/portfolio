@@ -11,7 +11,8 @@ const PORT = process.env.PORT || 3000;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Environment Configuration ──
-dotenv.config({ path: path.join(__dirname, ".env") });
+// Natively checks environment strings on platforms like Render first
+dotenv.config();
 
 // ── Supabase ──
 const supabase = createClient(
@@ -72,6 +73,7 @@ MEMBER:
 - Secretary of Computer Society of India (CSI) Student Chapter, Amrita Vishwa Vidyapeetham, Kochi.
 - Member of Google Developers Group.
 - Member of NVIDIA Developer Program.
+
 PROJECTS:
 - AttenDroid: Faculty-focused QR attendance app. Firebase synced.
 - CO_Olabs: Peer-to-peer collaborative learning platform. Vanilla JS + Firebase + Tailwind. Badges, leaderboard, real-time chat.
@@ -100,10 +102,13 @@ RESPONSE STYLE:
 - If asked something you don't know about Phoenix, say so honestly.`;
 
 app.post("/api/chat", async (req, res) => {
-  const { message, history } = req.body;
+  // Robust fallback: reads 'message', 'text', or 'query' depending on frontend schema
+  const message = req.body.message || req.body.text || req.body.query;
+  const history = req.body.history || [];
 
   if (!message) {
-    return res.status(400).json({ error: "No message provided." });
+    console.error("Payload Warning: Missing input parameter. Request body:", req.body);
+    return res.status(400).json({ error: "No message parameter provided." });
   }
 
   // Convert history array to standard format required by the Google SDK wrapper
@@ -151,21 +156,21 @@ app.post("/api/chat", async (req, res) => {
     return res.json({ reply });
 
   } catch (err) {
-    console.error("Gemini SDK Chat Error:", err.message);
-    return res.status(500).json({ error: "AIDA is temporarily offline." });
+    console.error("Gemini SDK Chat Error Trace:", err.message || err);
+    return res.status(500).json({ error: "AIDA execution system encountered an internal fault." });
   }
 });
 
-// ── Catch-all → serve index.html ──
-// ── Catch-all → change "*" to match a pure regex /.*/ fallback ──
+// ── Catch-all → Valid Express 5 Regular Expression Wildcard Fallback ──
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
-// ── Start ──
+
+// ── Start Engine ──
 app.listen(PORT, () => {
   console.log(`\n PHOENIX PORTFOLIO SERVER`);
   console.log(` ─────────────────────────────`);
-  console.log(` Running on  → http://localhost:${PORT}`);
+  console.log(` Running on  → Active Production Port: ${PORT}`);
   console.log(` AIDA        → /api/chat  [ Gemini 2.5 Flash SDK ]`);
   console.log(` Contact     → /api/contact  [ Supabase ]`);
   console.log(` ─────────────────────────────\n`);
