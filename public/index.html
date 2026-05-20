@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PHOENIX // MISSION BRIEF</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Chakra+Petch:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold: #f0a500;
+      --gold-dim: rgba(240,165,0,0.12);
+      --gold-border: rgba(240,165,0,0.28);
+      --gold-bright: #ffc840;
+      --red: #e63946;
+      --bg: #07080a;
+      --bg2: #0c0f13;
+      --bg3: #111520;
+      --text: #d4c9a8;
+      --text-dim: rgba(212,201,168,0.45);
+      --text-bright: #f5edd6;
+    }
+ 
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+    html { scroll-behavior: smooth; }
+ 
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Chakra Petch', sans-serif;
+      overflow-x: hidden;
+    }
+ 
+    /* ── HUD corner marks ── */
+    .hud-corner {
+      position: fixed;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .hud-corner.tl { top: 12px; left: 12px; }
+    .hud-corner.tr { top: 12px; right: 12px; }
+    .hud-corner.bl { bottom: 12px; left: 12px; }
+    .hud-corner.br { bottom: 12px; right: 12px; }
+ 
+    .hud-corner svg { display: block; }
+ 
+    /* ── Scanlines ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 3px,
+        rgba(240,165,0,0.015) 3px, rgba(240,165,0,0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 9998;
+    }
+ 
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,8,10,0.92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--gold-border);
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 2rem; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      letter-spacing: 6px; color: var(--gold);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-slash { color: var(--red); font-weight: 300; }
+    .logo-sub { font-size: 0.55rem; letter-spacing: 3px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; }
+ 
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.62rem; letter-spacing: 3px;
+      color: var(--text-dim); text-decoration: none;
+      text-transform: uppercase; transition: color 0.2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute;
+      bottom: -2px; left: 0; width: 0; height: 1px;
+      background: var(--gold); transition: width 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-links a:hover::after { width: 100%; }
+ 
+    .nav-status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 2px;
+      color: var(--gold); display: flex; align-items: center; gap: 6px;
+      border: 1px solid var(--gold-border);
+      padding: 4px 10px; border-radius: 2px;
+      background: var(--gold-dim);
+    }
+    .pulse { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); animation: glow-pulse 1.6s infinite; }
+    @keyframes glow-pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+ 
+    /* ── HERO ── */
+    .hero-wrap {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 5rem 2rem 3rem;
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 2rem; align-items: start;
+    }
+ 
+    @media(max-width:768px) {
+      .hero-wrap { grid-template-columns: 1fr; }
+      .hero-ring-col { display: none; }
+      .nav-links { display: none; }
+    }
+ 
+    .hero-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem; letter-spacing: 4px;
+      color: var(--red); text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-label::before { content: '▶'; font-size: 0.5rem; }
+ 
+    .hero-codename {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(3.5rem, 9vw, 7rem);
+      font-weight: 700; line-height: 0.9;
+      color: var(--text-bright);
+      letter-spacing: -1px;
+      margin-bottom: 0.2rem;
+    }
+    .hero-codename .gold { color: var(--gold); }
+    .hero-codename .slash { color: var(--red); font-weight: 300; }
+ 
+    .hero-designation {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem; letter-spacing: 3px;
+      color: var(--text-dim); margin-bottom: 2rem;
+      min-height: 1.4em;
+    }
+    .cursor-bar {
+      display: inline-block; width: 2px; height: 0.85em;
+      background: var(--gold); vertical-align: middle;
+      margin-left: 2px; animation: glow-pulse 0.9s infinite;
+    }
+ 
+    .hero-brief {
+      max-width: 500px;
+      font-size: 0.88rem; line-height: 1.9;
+      color: var(--text-dim); margin-bottom: 2.5rem;
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 300;
+    }
+ 
+    .btn-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+ 
+    .btn-primary {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 4px; text-transform: uppercase;
+      padding: 11px 28px; border: none;
+      background: var(--gold); color: #07080a;
+      cursor: pointer; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: opacity 0.2s, transform 0.1s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+ 
+    .btn-ghost {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 4px; text-transform: uppercase;
+      padding: 10px 28px;
+      border: 1px solid var(--gold-border);
+      background: transparent; color: var(--gold);
+      cursor: pointer; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: background 0.2s, transform 0.1s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-ghost:hover { background: var(--gold-dim); transform: translateY(-1px); }
+ 
+    /* ── Stat cards row ── */
+    .stat-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: var(--gold-border);
+      border: 1px solid var(--gold-border);
+      margin-top: 3rem;
+      clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    }
+    @media(max-width:600px){ .stat-row { grid-template-columns: repeat(2,1fr); } }
+    .stat-item {
+      background: var(--bg2); padding: 1rem 1.2rem; text-align: center;
+    }
+    .stat-num {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.8rem; font-weight: 700; color: var(--gold);
+      line-height: 1; display: block;
+    }
+    .stat-lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem; letter-spacing: 2px;
+      color: var(--text-dim); text-transform: uppercase;
+      margin-top: 3px; display: block;
+    }
+ 
+    /* ── Ring portrait ── */
+    .ring-portrait {
+      width: 260px; height: 260px;
+      position: relative; flex-shrink: 0;
+    }
+    .ring-portrait svg { width: 100%; height: 100%; }
+ 
+    /* ── Section ── */
+    section {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 3.5rem 2rem;
+    }
+ 
+    .sec-head {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    .sec-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 3px;
+      color: var(--red);
+    }
+    .sec-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--text-bright); letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .sec-line { flex: 1; height: 1px; background: var(--gold-border); }
+    .sec-end {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px;
+    }
+ 
+    /* ── Skills ── */
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 10px; }
+ 
+    .skill-item {
+      padding: 1rem 1.2rem;
+      border: 1px solid var(--gold-border);
+      background: var(--bg2);
+      clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .skill-item:hover { background: var(--bg3); border-color: var(--gold); }
+ 
+    .skill-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .skill-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem; font-weight: 600;
+      letter-spacing: 2px; color: var(--text-bright);
+      text-transform: uppercase;
+    }
+    .skill-pct {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem; color: var(--gold);
+    }
+    .skill-track { height: 2px; background: rgba(240,165,0,0.12); }
+    .skill-fill { height: 100%; background: var(--gold); }
+ 
+    /* ── Projects ── */
+    .proj-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px,1fr)); gap: 14px; }
+ 
+    .proj-card {
+      border: 1px solid var(--gold-border);
+      background: var(--bg2);
+      padding: 1.4rem;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+      clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+    }
+    .proj-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+ 
+    .proj-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+ 
+    .proj-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
+    .proj-id {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem; letter-spacing: 3px;
+      color: var(--red); text-transform: uppercase;
+    }
+    .proj-status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem; letter-spacing: 1px;
+      color: var(--gold); border: 1px solid var(--gold-border);
+      padding: 2px 7px; border-radius: 2px;
+      background: var(--gold-dim);
+    }
+    .proj-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--text-bright); letter-spacing: 2px;
+      margin-bottom: 0.4rem; text-transform: uppercase;
+    }
+    .proj-desc {
+      font-size: 0.78rem; color: var(--text-dim);
+      line-height: 1.8; margin-bottom: 1rem;
+      font-weight: 300;
+    }
+    .proj-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .proj-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.58rem; letter-spacing: 1px;
+      padding: 3px 8px; color: var(--gold);
+      border: 1px solid rgba(240,165,0,0.2);
+      background: rgba(240,165,0,0.05);
+    }
+ 
+    /* ── Timeline ── */
+    .timeline { position: relative; }
+    .tl-track {
+      position: absolute; left: 0; top: 8px; bottom: 0;
+      width: 1px; background: var(--gold-border);
+    }
+    .tl-item { padding-left: 2.5rem; padding-bottom: 2.5rem; position: relative; }
+    .tl-diamond {
+      position: absolute; left: -5px; top: 4px;
+      width: 11px; height: 11px;
+      background: var(--bg); border: 1px solid var(--gold);
+      transform: rotate(45deg);
+    }
+    .tl-date {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 3px;
+      color: var(--red); margin-bottom: 4px;
+    }
+    .tl-role {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--text-bright); letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 2px;
+    }
+    .tl-org { font-size: 0.78rem; color: var(--gold); margin-bottom: 8px; }
+    .tl-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.8; font-weight: 300; }
+ 
+    /* ── AIDA ── */
+    .aida-shell {
+      border: 1px solid var(--gold-border);
+      background: var(--bg2);
+      clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+      overflow: hidden;
+    }
+    .aida-bar {
+      background: rgba(240,165,0,0.06);
+      border-bottom: 1px solid var(--gold-border);
+      padding: 0.8rem 1.4rem;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .aida-orb {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1px solid var(--gold);
+      background: var(--bg3);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Rajdhani', monospace;
+      font-size: 0.65rem; font-weight: 700;
+      color: var(--gold); flex-shrink: 0;
+      animation: spin-ring 8s linear infinite;
+      box-shadow: 0 0 0 3px rgba(240,165,0,0.06), 0 0 0 6px rgba(240,165,0,0.03);
+    }
+    @keyframes spin-ring {}
+    .aida-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem; font-weight: 700;
+      letter-spacing: 3px; color: var(--gold);
+    }
+    .aida-online {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem; color: #00d4aa; letter-spacing: 2px;
+    }
+    .aida-msgs {
+      padding: 1.2rem 1.4rem;
+      min-height: 200px; max-height: 300px;
+      overflow-y: auto;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .msg {
+      font-size: 0.8rem; line-height: 1.7;
+      padding: 10px 14px; max-width: 82%;
+    }
+    .msg-a {
+      background: rgba(240,165,0,0.06);
+      border: 1px solid rgba(240,165,0,0.18);
+      color: var(--text); align-self: flex-start;
+      clip-path: polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);
+    }
+    .msg-u {
+      background: rgba(230,57,70,0.07);
+      border: 1px solid rgba(230,57,70,0.18);
+      color: var(--text); align-self: flex-end;
+      clip-path: polygon(8px 0,100% 0,100% 100%,0 100%,0 8px);
+    }
+    .msg-lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem; letter-spacing: 2px;
+      color: var(--gold); margin-bottom: 4px;
+    }
+    .aida-foot {
+      border-top: 1px solid var(--gold-border);
+      padding: 0.9rem 1.4rem;
+      display: flex; gap: 8px;
+    }
+    .aida-input {
+      flex: 1; background: var(--bg3);
+      border: 1px solid var(--gold-border);
+      padding: 9px 14px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem; color: var(--text);
+      outline: none; transition: border-color 0.2s;
+      clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+    }
+    .aida-input:focus { border-color: var(--gold); }
+    .aida-input::placeholder { color: var(--text-dim); }
+    .aida-btn {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      padding: 9px 18px; border: none;
+      background: var(--gold); color: #07080a;
+      cursor: pointer;
+      clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+      transition: opacity 0.2s;
+    }
+    .aida-btn:hover { opacity: 0.85; }
+ 
+    /* ── Contact ── */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3rem; }
+    @media(max-width:640px){ .contact-grid { grid-template-columns: 1fr; } }
+ 
+    .contact-brief {
+      font-size: 0.85rem; color: var(--text-dim);
+      line-height: 1.9; margin-bottom: 1.8rem; font-weight: 300;
+    }
+    .contact-link {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem; color: var(--text-dim);
+      text-decoration: none; margin-bottom: 10px;
+      transition: color 0.2s;
+    }
+    .contact-link:hover { color: var(--gold); }
+    .clink-icon {
+      width: 26px; height: 26px;
+      border: 1px solid var(--gold-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; color: var(--gold); flex-shrink: 0;
+      transform: rotate(45deg);
+    }
+    .clink-icon span { transform: rotate(-45deg); display: block; }
+ 
+    .f-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.58rem; letter-spacing: 3px;
+      color: var(--gold); text-transform: uppercase;
+      display: block; margin-bottom: 5px;
+    }
+    .f-input, .f-area {
+      width: 100%; background: var(--bg3);
+      border: 1px solid var(--gold-border);
+      padding: 9px 14px;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 0.8rem; color: var(--text);
+      outline: none; transition: border-color 0.2s;
+      resize: none; margin-bottom: 12px;
+    }
+    .f-input:focus, .f-area:focus { border-color: var(--gold); }
+    .f-input::placeholder, .f-area::placeholder { color: var(--text-dim); }
+ 
+    /* ── Divider ── */
+    .div-line { max-width:1200px; margin:0 auto; border:none; border-top:1px solid var(--gold-border); }
+ 
+    /* ── Footer ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--gold-border);
+      padding: 1.2rem 2rem; text-align: center;
+    }
+    footer p {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 3px; color: var(--text-dim);
+    }
+    footer span { color: var(--gold); }
+ 
+    /* ── Diagonal section accent ── */
+    .diag-accent {
+      width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0.4;
+    }
+ 
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fadeUp 0.4s ease forwards; }
+  </style>
+</head>
+<body>
+ 
+  <!-- HUD corner brackets -->
+  <div class="hud-corner tl">
+    <svg width="28" height="28"><path d="M0 28 L0 0 L28 0" fill="none" stroke="rgba(240,165,0,0.4)" stroke-width="1.5"/></svg>
+  </div>
+  <div class="hud-corner tr">
+    <svg width="28" height="28"><path d="M28 28 L28 0 L0 0" fill="none" stroke="rgba(240,165,0,0.4)" stroke-width="1.5"/></svg>
+  </div>
+  <div class="hud-corner bl">
+    <svg width="28" height="28"><path d="M0 0 L0 28 L28 28" fill="none" stroke="rgba(240,165,0,0.4)" stroke-width="1.5"/></svg>
+  </div>
+  <div class="hud-corner br">
+    <svg width="28" height="28"><path d="M28 0 L28 28 L0 28" fill="none" stroke="rgba(240,165,0,0.4)" stroke-width="1.5"/></svg>
+  </div>
+ 
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="logo">
+        <div>
+          PHOENIX<span class="logo-slash"> // </span>ARAVIND
+          <div class="logo-sub">UNIT_DESIGNATION · BCA · AMRITA</div>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="#skills">Skills</a>
+        <a href="#projects">Missions</a>
+        <a href="#experience">History</a>
+        <a href="#aida">AIDA</a>
+        <a href="#contact">Deploy</a>
+      </div>
+      <div class="nav-status">
+        <div class="pulse"></div> AVAILABLE
+      </div>
+    </div>
+  </nav>
+ 
+  <!-- HERO -->
+  <div class="hero-wrap">
+    <div>
+      <div class="hero-label">MISSION BRIEF // CANDIDATE FILE LOADED</div>
+      <h1 class="hero-codename">
+        PHOЕ<span class="gold">NIX</span><br>
+        <span style="font-size:0.55em; letter-spacing:6px; color:var(--text-dim); font-weight:300;">ARAVIND BABU</span>
+      </h1>
+      <div class="hero-designation">&gt;&gt; <span id="typewriter"></span><span class="cursor-bar"></span></div>
+      <p class="hero-brief">
+        2nd-year BCA (Hons.) candidate at Amrita Vishwa Vidyapeetham. Specializing in
+        AI/ML, Ethical Hacking, and Full-Stack Development. Dual-mission objective:
+        become an AI/ML Engineer and a Penetration Testing specialist. Masters deployment
+        scheduled — 2026.
+      </p>
+      <div class="btn-row">
+        <a href="#projects" class="btn-primary">View Missions</a>
+        <a href="#aida" class="btn-ghost">Contact AIDA</a>
+      </div>
+      <div class="stat-row">
+        <div class="stat-item"><span class="stat-num">8+</span><span class="stat-lbl">Missions</span></div>
+        <div class="stat-item"><span class="stat-num">01</span><span class="stat-lbl">Internship</span></div>
+        <div class="stat-item"><span class="stat-num">02</span><span class="stat-lbl">Hackathons</span></div>
+        <div class="stat-item"><span class="stat-num">2026</span><span class="stat-lbl">Masters</span></div>
+      </div>
+    </div>
+ 
+    <!-- Animated ring portrait -->
+    <div class="hero-ring-col">
+      <div class="ring-portrait">
+        <svg viewBox="0 0 260 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer rotating ring -->
+          <circle cx="130" cy="130" r="120" stroke="rgba(240,165,0,0.15)" stroke-width="1"/>
+          <circle cx="130" cy="130" r="120" stroke="rgba(240,165,0,0.6)" stroke-width="1"
+            stroke-dasharray="30 10 60 240"
+            stroke-dashoffset="0">
+            <animateTransform attributeName="transform" type="rotate" from="0 130 130" to="360 130 130" dur="12s" repeatCount="indefinite"/>
+          </circle>
+ 
+          <!-- Mid ring -->
+          <circle cx="130" cy="130" r="100" stroke="rgba(240,165,0,0.08)" stroke-width="1"/>
+          <circle cx="130" cy="130" r="100" stroke="rgba(240,165,0,0.35)" stroke-width="1"
+            stroke-dasharray="15 8 40 180"
+            stroke-dashoffset="0">
+            <animateTransform attributeName="transform" type="rotate" from="360 130 130" to="0 130 130" dur="8s" repeatCount="indefinite"/>
+          </circle>
+ 
+          <!-- Inner fill -->
+          <circle cx="130" cy="130" r="80" fill="rgba(12,15,19,0.95)" stroke="rgba(240,165,0,0.3)" stroke-width="1"/>
+ 
+          <!-- Diamond marks at cardinal points -->
+          <rect x="126" y="6" width="8" height="8" fill="var(--gold)" transform="rotate(45 130 10)"/>
+          <rect x="126" y="242" width="8" height="8" fill="rgba(240,165,0,0.4)" transform="rotate(45 130 246)"/>
+          <rect x="6" y="126" width="8" height="8" fill="rgba(240,165,0,0.4)" transform="rotate(45 10 130)"/>
+          <rect x="242" y="126" width="8" height="8" fill="rgba(240,165,0,0.4)" transform="rotate(45 246 130)"/>
+ 
+          <!-- Center text -->
+          <text x="130" y="112" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="28" font-weight="700" fill="#f5edd6">PH:NX</text>
+          <text x="130" y="132" text-anchor="middle" font-family="Share Tech Mono,monospace" font-size="8" fill="rgba(240,165,0,0.7)" letter-spacing="3">UNIT · ACTIVE</text>
+ 
+          <!-- Stat arcs -->
+          <text x="130" y="158" text-anchor="middle" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(212,201,168,0.5)" letter-spacing="2">AI / ML</text>
+          <line x1="90" y1="163" x2="170" y2="163" stroke="rgba(240,165,0,0.15)" stroke-width="1"/>
+          <line x1="90" y1="163" x2="154" y2="163" stroke="rgba(240,165,0,0.7)" stroke-width="1.5"/>
+ 
+          <text x="130" y="178" text-anchor="middle" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(212,201,168,0.5)" letter-spacing="2">CYBERSEC</text>
+          <line x1="90" y1="183" x2="170" y2="183" stroke="rgba(240,165,0,0.15)" stroke-width="1"/>
+          <line x1="90" y1="183" x2="148" y2="183" stroke="rgba(240,165,0,0.7)" stroke-width="1.5"/>
+ 
+          <text x="130" y="198" text-anchor="middle" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(212,201,168,0.5)" letter-spacing="2">UI / UX</text>
+          <line x1="90" y1="203" x2="170" y2="203" stroke="rgba(240,165,0,0.15)" stroke-width="1"/>
+          <line x1="90" y1="203" x2="158" y2="203" stroke="rgba(240,165,0,0.7)" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="diag-accent"></div>
+ 
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="sec-head">
+      <div class="sec-num">[ 01 ]</div>
+      <div class="sec-title">Combat Skills</div>
+      <div class="sec-line"></div>
+      <div class="sec-end">PROFICIENCY MATRIX</div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-item"><div class="skill-top"><span class="skill-name">AI / ML</span><span class="skill-pct">80%</span></div><div class="skill-track"><div class="skill-fill" style="width:80%"></div></div></div>
+      <div class="skill-item"><div class="skill-top"><span class="skill-name">UI / UX Design</span><span class="skill-pct">78%</span></div><div class="skill-track"><div class="skill-fill" style="width:78%"></div></div></div>
+      <div class="skill-item"><div class="skill-top"><span class="skill-name">Android Dev</span><span class="skill-pct">73%</span></div><div class="skill-track"><div class="skill-fill" style="width:73%"></div></div></div>
+      <div class="skill-item"><div class="skill-top"><span class="skill-name">Full-Stack</span><span class="skill-pct">68%</span></div><div class="skill-track"><div class="skill-fill" style="width:68%"></div></div></div>
+      <div class="skill-item"><div class="skill-top"><span class="skill-name">Cybersecurity</span><span class="skill-pct">65%</span></div><div class="skill-track"><div class="skill-fill" style="width:65%"></div></div></div>
+      <div class="skill-item"><div class="skill-top"><span class="skill-name">Firebase / Supabase</span><span class="skill-pct">76%</span></div><div class="skill-track"><div class="skill-fill" style="width:76%"></div></div></div>
+      <div class="skill-item"><div class="skill-top"><span class="skill-name">Node.js / Express</span><span class="skill-pct">66%</span></div><div class="skill-track"><div class="skill-fill" style="width:66%"></div></div></div>
+      <div class="skill-item"><div class="skill-top"><span class="skill-name">Java / DSA</span><span class="skill-pct">70%</span></div><div class="skill-track"><div class="skill-fill" style="width:70%"></div></div></div>
+    </div>
+  </section>
+ 
+  <div class="diag-accent"></div>
+ 
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="sec-head">
+      <div class="sec-num">[ 02 ]</div>
+      <div class="sec-title">Mission Log</div>
+      <div class="sec-line"></div>
+      <div class="sec-end">COMPLETED &amp; ACTIVE</div>
+    </div>
+    <div class="proj-grid">
+ 
+      <div class="proj-card">
+        <div class="proj-top"><div class="proj-id">MISSION_001 · ANDROID</div><div class="proj-status">DEPLOYED</div></div>
+        <div class="proj-name">Rollify</div>
+        <div class="proj-desc">QR-based attendance management system with leave form uploads, live tracking, and auto-generated Excel reports for faculty and students.</div>
+        <div class="proj-tags"><span class="proj-tag">Android Studio</span><span class="proj-tag">Firebase</span><span class="proj-tag">Java</span><span class="proj-tag">QR Code</span></div>
+      </div>
+ 
+      <div class="proj-card">
+        <div class="proj-top"><div class="proj-id">MISSION_002 · AI</div><div class="proj-status">ACTIVE</div></div>
+        <div class="proj-name">AIDA</div>
+        <div class="proj-desc">Personal AI chatbot recommending free learning resources and courses. Runs entirely without paid cloud services — privacy-first, local-first architecture.</div>
+        <div class="proj-tags"><span class="proj-tag">Python</span><span class="proj-tag">NLP</span><span class="proj-tag">Local AI</span></div>
+      </div>
+ 
+      <div class="proj-card">
+        <div class="proj-top"><div class="proj-id">MISSION_003 · WEB</div><div class="proj-status">DEPLOYED</div></div>
+        <div class="proj-name">CO_Olabs</div>
+        <div class="proj-desc">Collaborative peer-to-peer learning platform with real-time doubt solving, live chat, achievement badges, dark mode, and a competitive leaderboard.</div>
+        <div class="proj-tags"><span class="proj-tag">Vanilla JS</span><span class="proj-tag">Firebase</span><span class="proj-tag">Tailwind CSS</span></div>
+      </div>
+ 
+      <div class="proj-card">
+        <div class="proj-top"><div class="proj-id">MISSION_004 · ANDROID</div><div class="proj-status">DEPLOYED</div></div>
+        <div class="proj-name">AttenDroid</div>
+        <div class="proj-desc">Faculty-focused QR attendance system replacing paper registers entirely. One scan per student, synced to Firebase in real-time.</div>
+        <div class="proj-tags"><span class="proj-tag">Android Studio</span><span class="proj-tag">Firebase</span><span class="proj-tag">QR Scanner</span></div>
+      </div>
+ 
+      <div class="proj-card">
+        <div class="proj-top"><div class="proj-id">MISSION_005 · WEB</div><div class="proj-status">DEPLOYED</div></div>
+        <div class="proj-name">SAF Alumni App</div>
+        <div class="proj-desc">Digital alumni platform for St. Anthony's School featuring alumni ID cards, reunion booking system, and live school updates feed.</div>
+        <div class="proj-tags"><span class="proj-tag">HTML</span><span class="proj-tag">CSS</span><span class="proj-tag">Firebase</span></div>
+      </div>
+ 
+      <div class="proj-card">
+        <div class="proj-top"><div class="proj-id">MISSION_006 · FULL-STACK</div><div class="proj-status">IN PROGRESS</div></div>
+        <div class="proj-name">InnSync</div>
+        <div class="proj-desc">Hostel management system handling room allocation, complaints, and administrative workflows. Built for students and institutional administrators.</div>
+        <div class="proj-tags"><span class="proj-tag">Node.js</span><span class="proj-tag">MongoDB</span><span class="proj-tag">Express</span></div>
+      </div>
+ 
+    </div>
+  </section>
+ 
+  <div class="diag-accent"></div>
+ 
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="sec-head">
+      <div class="sec-num">[ 03 ]</div>
+      <div class="sec-title">Service Record</div>
+      <div class="sec-line"></div>
+      <div class="sec-end">VERIFIED</div>
+    </div>
+    <div class="timeline">
+      <div class="tl-track"></div>
+ 
+      <div class="tl-item">
+        <div class="tl-diamond"></div>
+        <div class="tl-date">2024 · INTERNSHIP</div>
+        <div class="tl-role">UI/UX Design Intern</div>
+        <div class="tl-org">Cognifiz Technologies</div>
+        <div class="tl-desc">Worked on real-world product interfaces. Strengthened design thinking, creative prototyping, collaborative workflows, and user research methodologies using Figma.</div>
+      </div>
+ 
+      <div class="tl-item">
+        <div class="tl-diamond"></div>
+        <div class="tl-date">2024 · HACKATHON</div>
+        <div class="tl-role">Participant — OLabs Hackathon</div>
+        <div class="tl-org">OLabs Platform</div>
+        <div class="tl-desc">Built a collaborative tech solution under hackathon time constraints. Strengthened rapid prototyping, teamwork, and high-pressure presentation skills.</div>
+      </div>
+ 
+      <div class="tl-item">
+        <div class="tl-diamond"></div>
+        <div class="tl-date">2023 – PRESENT · EDUCATION</div>
+        <div class="tl-role">Bachelor of Computer Applications (Hons.)</div>
+        <div class="tl-org">Amrita Vishwa Vidyapeetham</div>
+        <div class="tl-desc">Core modules: AI/ML, Cybersecurity, Java, Data Structures & Algorithms, UI/UX, and Application Development. Actively building real-world projects beyond curriculum scope.</div>
+      </div>
+ 
+    </div>
+  </section>
+ 
+  <div class="diag-accent"></div>
+ 
+  <!-- AIDA -->
+  <section id="aida">
+    <div class="sec-head">
+      <div class="sec-num">[ 04 ]</div>
+      <div class="sec-title">AIDA Interface</div>
+      <div class="sec-line"></div>
+      <div class="sec-end">AI ASSISTANT · ONLINE</div>
+    </div>
+    <p style="font-family:'Share Tech Mono',monospace; font-size:0.65rem; letter-spacing:2px; color:var(--text-dim); margin-bottom:1.2rem;">
+      &gt; AIDA is Phoenix's personal AI. Ask about projects, skills, goals, or background.
+    </p>
+    <div class="aida-shell">
+      <div class="aida-bar">
+        <div class="aida-orb">AI</div>
+        <div>
+          <div class="aida-title">A · I · D · A</div>
+          <div class="aida-online">● SYSTEM ONLINE · PHOENIX UNIT</div>
+        </div>
+        <div style="margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:0.55rem; color:var(--text-dim); letter-spacing:2px;">
+          v1.0.0
+        </div>
+      </div>
+      <div class="aida-msgs" id="chat-messages">
+        <div class="msg msg-a">
+          <div class="msg-lbl">AIDA_SYS</div>
+          Identification confirmed. I am AIDA — Phoenix's personal AI assistant. Query my database for information on his projects, technical skills, career objectives, or background. Standing by.
+        </div>
+      </div>
+      <div class="aida-foot">
+        <input class="aida-input" id="chat-input" placeholder="&gt; Enter query..." />
+        <button class="aida-btn" id="chat-send">TRANSMIT</button>
+      </div>
+    </div>
+  </section>
+ 
+  <div class="diag-accent"></div>
+ 
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="sec-head">
+      <div class="sec-num">[ 05 ]</div>
+      <div class="sec-title">Deploy Request</div>
+      <div class="sec-line"></div>
+      <div class="sec-end">SECURE CHANNEL</div>
+    </div>
+    <div class="contact-grid">
+      <div>
+        <p class="contact-brief">Open to internship missions in AI/ML Engineering, Full-Stack Development, Cybersecurity, and UI/UX Design. Bring a problem worth solving.</p>
+        <a href="mailto:your@email.com" class="contact-link">
+          <div class="clink-icon"><span>@</span></div>
+          your@email.com
+        </a>
+        <a href="https://github.com/yourusername" target="_blank" class="contact-link">
+          <div class="clink-icon"><span>GH</span></div>
+          github.com/yourusername
+        </a>
+        <a href="https://linkedin.com/in/yourusername" target="_blank" class="contact-link">
+          <div class="clink-icon"><span>LI</span></div>
+          linkedin.com/in/yourusername
+        </a>
+      </div>
+      <div>
+        <label class="f-label">Identifier (Name)</label>
+        <input type="text" class="f-input" id="form-name" placeholder="Your name" />
+        <label class="f-label">Comms Channel (Email)</label>
+        <input type="email" class="f-input" id="form-email" placeholder="your@email.com" />
+        <label class="f-label">Mission Brief (Message)</label>
+        <textarea class="f-area" rows="4" id="form-msg" placeholder="Tell me about the opportunity..."></textarea>
+        <button class="btn-primary" id="form-submit" style="width:100%; text-align:center; display:block;">
+          TRANSMIT REQUEST
+        </button>
+        <div id="form-ok" style="display:none; margin-top:10px; font-family:'Share Tech Mono',monospace; font-size:0.65rem; letter-spacing:2px; color:#00d4aa;">
+          &gt; TRANSMISSION RECEIVED. STANDING BY.
+        </div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- FOOTER -->
+  <footer>
+    <p>BUILT BY <span>PHOENIX ARAVIND BABU</span> · AMRITA VISHWA VIDYAPEETHAM · <span>2025</span> · ALL SYSTEMS OPERATIONAL</p>
+  </footer>
+ 
+  <script>
+    // Typewriter
+    const phrases = [
+      'AI/ML Engineer — Target Class',
+      'Penetration Tester — Specialization',
+      'Full-Stack Developer — Active',
+      'Android Engineer — Active',
+      'UI/UX Designer — Certified',
+      'BCA Student — Amrita Univ.',
+    ];
+    let pi=0,ci=0,del=false;
+    const tw=document.getElementById('typewriter');
+    function type(){
+      const p=phrases[pi];
+      if(!del){tw.textContent=p.slice(0,++ci);if(ci===p.length){del=true;setTimeout(type,2000);return;}}
+      else{tw.textContent=p.slice(0,--ci);if(ci===0){del=false;pi=(pi+1)%phrases.length;}}
+      setTimeout(type,del?38:65);
+    }
+    type();
+ 
+    // AIDA Chat
+    const msgs=document.getElementById('chat-messages');
+    const inp=document.getElementById('chat-input');
+    const btn=document.getElementById('chat-send');
+ 
+    const ctx=`You are AIDA, the personal AI assistant of Aravind Babu known as Phoenix.
+Facts: 2nd-year BCA Honours at Amrita Vishwa Vidyapeetham. Skills: AI/ML, Cybersecurity, Full-Stack, Android, UI/UX.
+Projects: Rollify (QR attendance/Android/Firebase), AttenDroid (faculty QR attendance), CO_Olabs (peer learning platform/JS/Firebase/Tailwind), AIDA (AI chatbot/local), InnSync (hostel mgmt/Node/MongoDB), SAF Alumni App, HomeHardware (e-commerce idea), Karna OS (custom OS, paused).
+Experience: UI/UX intern at Cognifiz Technologies, OLabs Hackathon participant.
+Goals: AI/ML Engineer + Penetration Testing specialist. Masters abroad 2026. Preparing for IB ACIO.
+Daily life: College 9AM-4:40PM, part-time job 6PM-8:30PM, late-night self-learning.
+Personality: Loves demon king anime, hackathons, futuristic ideas. Named ChatGPT "Friday".
+Respond in a concise, mission-briefing style. Max 2-3 sentences. Use technical language naturally.`;
+ 
+    function addMsg(text,role){
+      const d=document.createElement('div');
+      d.className='msg fade-up '+(role==='a'?'msg-a':'msg-u');
+      if(role==='a'){
+        const l=document.createElement('div');
+        l.className='msg-lbl';l.textContent='AIDA_SYS';d.appendChild(l);
+      }
+      d.appendChild(document.createTextNode(text));
+      msgs.appendChild(d);
+      msgs.scrollTop=msgs.scrollHeight;
+    }
+ 
+    async function send(){
+      const q=inp.value.trim();if(!q)return;
+      addMsg(q,'u');inp.value='';btn.disabled=true;
+      addMsg('Processing...','a');
+      try{
+        const r=await fetch('/api/chat',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({message:q,context:ctx})
+        });
+        const data=await r.json();
+        msgs.lastChild.remove();
+        addMsg(data.reply||'Signal lost. Check backend.','a');
+      }catch{
+        msgs.lastChild.remove();
+        addMsg('[ AIDA backend offline. Deploy server/index.js to activate this channel. ]','a');
+      }
+      btn.disabled=false;
+    }
+ 
+    btn.addEventListener('click',send);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+ 
+    // Contact form
+    document.getElementById('form-submit').addEventListener('click',async()=>{
+      const n=document.getElementById('form-name').value.trim();
+      const e=document.getElementById('form-email').value.trim();
+      const m=document.getElementById('form-msg').value.trim();
+      if(!n||!e||!m)return;
+      try{
+        await fetch('/api/contact',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({name:n,email:e,message:m})
+        });
+      }catch{}
+      document.getElementById('form-ok').style.display='block';
+      document.getElementById('form-name').value='';
+      document.getElementById('form-email').value='';
+      document.getElementById('form-msg').value='';
+    });
+  </script>
+</body>
+</html>
+ 
