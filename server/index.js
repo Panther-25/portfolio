@@ -22,7 +22,7 @@ const supabase = createClient(
 
 // ── Google Gemini SDK ──
 // Automatically maps to process.env.GEMINI_API_KEY
-const ai = new GoogleGenAI({});
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // ── Middleware ──
 app.use(cors());
