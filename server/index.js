@@ -157,7 +157,7 @@ app.post("/api/chat", async (req, res) => {
 });
 
 // ── Catch-all → serve index.html ──
-app.get("*splat", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
